@@ -5,9 +5,10 @@ int main(){
 
     bool exit = false;
     int choice;
-
+    cout << "------------ Welcome -------------\n";
     while (!exit)
     {
+        cout << endl;
         showMenu();
         cin >> choice;
         cin.ignore();
@@ -28,6 +29,7 @@ int main(){
 
                     if(result == LOGIN_SUCCESS){
                         cout << "Login successful!" << endl;
+                        exit = true;
                         break;
                     }
 
@@ -40,11 +42,28 @@ int main(){
                         attempts++;
                         if(attempts < maxAttempts){
                             cout << "Incorrect username or password. Try again. Attempts left: " << maxAttempts - attempts << endl;
+                            
+                            char option;
+                            cout << "Forgot Password? Would you like to reset your Password? [y/n]";
+                            cin >> option;
+                            cin.ignore();
+
+                            if(tolower(option) == 'y'){
+                                LoginStatus status = resetPassword();
+
+                                if(status == LOGIN_SUCCESS){
+                                    cout << "Password reset successful." << endl;
+                                }
+                                else if(status == LOGIN_USER_NOT_FOUND){
+                                    cout << "Username not found. Try again or register." << endl;    
+                                }
+                                break;
+                            }
                         }
                         else{
                             cout << "Limit reached. Try again later." << endl;
                         }
-
+                        exit = true;
                     }
                 }
         }
@@ -57,4 +76,8 @@ int main(){
             cout << "Invalid option. Please enter 1, 2 or 3." << endl;
         }
     }
+
+
+
+
 }
