@@ -14,9 +14,10 @@ enum LoginStatus {
 
 std::string hashPassword(const std::string &input);
 void saveToFile(const std::string &username, const std::string &email, const std::string &pswd);
+LoginStatus checkFile();
 void registerUser();
-LoginStatus loginUser();
-LoginStatus resetPassword();
+LoginStatus loginUser(std::string &username);
+LoginStatus resetPassword(const std::string &username);
 void showMenu();
 
 

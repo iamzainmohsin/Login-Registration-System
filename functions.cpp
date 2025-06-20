@@ -2,7 +2,10 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <cstdio>
 using namespace std;
+
+const string FILE_NAME = "users.csv";
 
 //HashAlgorithm
 string hashPassword(const string &input){
@@ -26,26 +29,25 @@ string hashPassword(const string &input){
     return ss.str();
 }
 
-
-//Writing To File:
+//WritingToFile:
 void saveToFile(const string &username, const string &email, const string &pswd){
     //CheckExistence:
-    ifstream checkFile("users.csv");
+    ifstream checkFile(FILE_NAME);
     bool fileExists = checkFile.good();
     checkFile.close();
 
     //AddsHEader:
     if(!fileExists){
-        ofstream createFile("users.csv");
+        ofstream createFile(FILE_NAME);
         createFile << "User Name,Email,Password" << endl;
         createFile.close();
     }
 
     //AddsData:
-    ofstream user_file("users.csv", ios::app);
+    ofstream user_file(FILE_NAME, ios::app);
 
     if(!user_file){
-        cout << "Error Opening Your File";
+        cout << "\nError Opening Your File";
     }
     else{
         user_file << username << "," << email << "," << pswd << endl;
@@ -54,28 +56,35 @@ void saveToFile(const string &username, const string &email, const string &pswd)
 
 }
 
-
 //Registration:
 void registerUser(){
     string username, email, pswd;
 
-
     cout << "\n--- Register New Account ---\n";
 
 
-    cout << "Enter your User Name: ";
-    getline(cin, username);
+    //usernameCheck:
+    while (true) {
+        cout << "Enter your User Name: ";
+        getline(cin, username);
+        if (username.find(',') != string::npos) {
+            cout << "Commas are not allowed in the username. Please try again." << endl;
+        } else {
+            break;
+        }
+    }
+
 
     //emailCheck:
     while(true){
         cout << "Enter your Email: ";
         getline(cin, email);
-        if (email.find('@') != string::npos && email.find('.') != string::npos) {
+        if (email.find(',') != string::npos){
+            cout << "Commas are not allowed in the email. Please try again." << endl;
+        }
+        else if (email.find('@') != string::npos && email.find('.') != string::npos) {
             break;  
         } 
-        // else if (email.find(',') != string::npos){
-        //     cout << "You cannot use a comma in here." << endl;
-        // }
         else {
             cout << "Invalid email format. Try again." << endl;
         }
@@ -86,7 +95,10 @@ void registerUser(){
     while(true){
         cout << "Enter your Password: ";
         getline(cin, pswd);
-        if (pswd.length() < 8) {
+        if (pswd.find(',') != string::npos) {
+            cout << "Commas are not allowed in the password. Please try again." << endl;
+        }
+        else if (pswd.length() < 8) {
         cout << "Password needs to be more than 8 characters." << endl;
         }
         else{
@@ -97,7 +109,7 @@ void registerUser(){
 
 
     //ChecksAlreadyExisitingUserName:
-    ifstream userFile("users.csv");
+    ifstream userFile(FILE_NAME);
     string line;
     bool duplicateFound = false;
     while(getline(userFile, line)){
@@ -117,15 +129,15 @@ void registerUser(){
     //SavesToFile:
     if(!duplicateFound){
         saveToFile(username, email, hashPassword(pswd));
-        cout << "Account sucessfully created." << endl;
+        cout << "\nAccount sucessfully created." << endl;
+        cout << "Thanks for creating an account '" << username << "' !" << endl;
     }
 }
 
-
 //Login:
-LoginStatus loginUser(){
+LoginStatus loginUser(string &username){
     
-    string username, pswd;
+    string pswd;
 
     cout << "\n--- Login to Your Account ---\n";
 
@@ -133,18 +145,20 @@ LoginStatus loginUser(){
     cout << "Enter your username: ";
     getline(cin, username);
 
+
     cout << "Enter your password: ";
     getline(cin, pswd);
     string hashedInputPassword = hashPassword(pswd);
 
+
     //ChecksForFileExistence:
-    ifstream checkFile("users.csv");
-    if(!checkFile.good()){
-        return LOGIN_FILE_NOT_FOUND;
-    }
+    ifstream checkFile(FILE_NAME);
+    bool fileExists = checkFile.good();
+    checkFile.close();
+
 
     //MatchingCredentials:
-    ifstream user_file("users.csv");
+    ifstream user_file(FILE_NAME);
     string line;
     bool user_found = false;
     bool passwordMatched = false;
@@ -179,25 +193,21 @@ LoginStatus loginUser(){
 }
 
 //ResetPassword:
-LoginStatus resetPassword(){
+LoginStatus resetPassword(const string &username){
     
-    string username, pswd, newHashedPassword;
+    string pswd, newHashedPassword;
 
     cout << "\n--- Reset your Password ---\n";
 
-
-    cout << "Enter your username: ";
-    getline(cin, username);
-
-
     //ChecksForFileExistence:
-    ifstream checkFile("users.csv");
-    if(!checkFile.good()){
-        return LOGIN_FILE_NOT_FOUND;
-    }
+    ifstream checkFile(FILE_NAME);
+    bool fileExists = checkFile.good();
+    checkFile.close();
+
+
 
     //MatchingCredentials:
-    ifstream user_file("users.csv");
+    ifstream user_file(FILE_NAME);
     string line;
     bool user_found = false;
 
@@ -222,10 +232,12 @@ LoginStatus resetPassword(){
 
     //NewPassword
     while(true){
-        cout << "Enter your new password: ";
+        cout << "Enter your Password: ";
         getline(cin, pswd);
-        
-        if (pswd.length() < 8) {
+        if (pswd.find(',') != string::npos) {
+            cout << "Commas are not allowed in the password. Please try again." << endl;
+        }
+        else if (pswd.length() < 8) {
         cout << "Password needs to be more than 8 characters." << endl;
         }
         else{
@@ -235,7 +247,7 @@ LoginStatus resetPassword(){
     }
 
     //SettingTemporaryFile&Updating:
-    ifstream user_file_read("users.csv");
+    ifstream user_file_read(FILE_NAME);
     ofstream temp_file("temp.csv");
 
     while(getline(user_file_read, line)){
@@ -257,13 +269,12 @@ LoginStatus resetPassword(){
     temp_file.close();
 
 
-    remove("users.csv");
-    rename("temp.csv", "users.csv");
+    remove(FILE_NAME.c_str());
+    rename("temp.csv", FILE_NAME.c_str());
 
     return LOGIN_SUCCESS;
 
 }
-
 
 //MainMenu
 void showMenu() {
