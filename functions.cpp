@@ -195,9 +195,17 @@ LoginStatus loginUser(string &username){
 //ResetPassword:
 LoginStatus resetPassword(const string &username){
     
-    string pswd, newHashedPassword;
+    string pswd, newHashedPassword, email;
+    string correctEmail;
 
     cout << "\n--- Reset your Password ---\n";
+
+
+    cout << "Enter your registered email to verify identity: ";
+    getline(cin, email);
+
+
+
 
     //ChecksForFileExistence:
     ifstream checkFile(FILE_NAME);
@@ -210,6 +218,11 @@ LoginStatus resetPassword(const string &username){
     ifstream user_file(FILE_NAME);
     string line;
     bool user_found = false;
+    bool email_found = false;
+
+    if (!fileExists) {
+        return LOGIN_FILE_NOT_FOUND;
+    }
 
     while(getline(user_file, line)){
         stringstream ss(line);
@@ -219,7 +232,7 @@ LoginStatus resetPassword(const string &username){
         getline(ss, matchEmail, ',');
         getline(ss, matchPassword, ',');
 
-        if(matchUser == username){
+        if(matchUser == username && matchEmail == email){
             user_found = true;
             break;
         }
@@ -229,6 +242,7 @@ LoginStatus resetPassword(const string &username){
     if(!user_found){
         return LOGIN_USER_NOT_FOUND;
     }
+
 
     //NewPassword
     while(true){
